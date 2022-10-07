@@ -22,12 +22,44 @@ const connection = mysql.createConnection({
     database: process.env.DATABASE_NAME
 })
 
-connection.connect()
-
-app.post('/game', (req, res) => {
-
+app.post('/addgame', (req, res) => {
+    const {gameid, choice, amount} = req.body
 })
 
-app.post('/bet', (req, res) => {
-
+app.post('/newbet', (req, res) => {
+const {gameid, choice, amount} = req.body
+    try{
+        connection.connect(err => {
+            if (err) throw err;
+            connection.query(`SELECT * FROM selections WHERE gameid='${gameid}'`, (error, results, fields) => {
+                if (error) throw error;
+                if(results.length > 0){
+                    if(results[0].betcount <= 10){
+                        connection.query(`INSERT INTO betslips(betid, gameid, choice, amount)
+                        VALUES('${uuidv4()}','${gameid}','${choice}',${Number(amount)})`, (error, results, fields) => {
+                            if(error) throw error
+                            else{
+                                connection.query(`UPDATE booked SET playcount = playcount + 1 WHERE gameid='${gameid}'`, (error, results, fields) => {
+                                    if (error) throw error;
+                                    res.status(201).json({
+                                        status: true,
+                                        message: "Bet successfully placed and accepted",
+                                        data: req.body
+                                    })
+                                })
+                            }
+                        })
+                    }else{
+                        throw 'Selected game is closed/expired';
+                    }
+                }else{
+                    throw 'Selected game does not exist';
+                }
+            })
+        })
+    }catch(e){
+        res.status(400).json({
+            message: e.message
+        })
+    }
 })

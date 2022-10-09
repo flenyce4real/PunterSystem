@@ -41,7 +41,7 @@ app.post('/addgame', (req, res) => {
         })
     }
 
-    const {fixture, options} = req.body
+    const { fixture, options } = req.body
     const gameid = uuidv4();
     const refid = gameid.split('-')[0].toUpperCase()
 
@@ -60,7 +60,7 @@ app.post('/addgame', (req, res) => {
                     }
                     res.status(201).json({
                         message: "Game successfully added",
-                        data: [{"refid": refid}, {"fixture": fixture}, {"options": option}]
+                        data: [{"refid": refid}, {"fixture": fixture}, {"options": options}]
                     })
                 }
             })

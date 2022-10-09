@@ -23,28 +23,58 @@ const connection = mysql.createConnection({
 })
 
 app.post('/addgame', (req, res) => {
-    const {gameid, choice, amount} = req.body
-})
-
-app.post('/newbet', (req, res) => {
-const {gameid, choice, amount} = req.body
+    const {fixture, options} = req.body
+    const gameid = uuidv4();
+    const refid = gameid.split('-')[0].toUpperCase()
     try{
         connection.connect(err => {
             if (err) throw err;
-            connection.query(`SELECT * FROM selections WHERE gameid='${gameid}'`, (error, results, fields) => {
+            connection.query(`INSERT INTO games(game_id, ref_id, fixture)
+            VALUES('${gameid}','${refid}','${fixture}')`, (error, results, fields) => {
+                if(error) throw error
+                else{
+                    for(let option in options){
+                        connection.query(`INSERT INTO choices(choice_id, game_id, choice, odd)
+                        VALUES('${uuidv4()}','${gameid}','${option}',${Number(options[option])})`, (error, results, fields) => {
+                            if(error) throw error
+                        })
+                    }
+                    res.status(201).json({
+                        message: "Game successfully added",
+                        data: [{"refid": refid}, {"fixture": fixture}, {"options": option}]
+                    })
+                }
+            })
+        })
+    }catch(e){
+        res.status(400).json({
+            message: e.message
+        })
+    }
+})
+
+app.post('/newbet', (req, res) => {
+const {refid, choice, amount} = req.body
+    try{
+        connection.connect(err => {
+            if (err) throw err;
+            connection.query(`SELECT fixture, g.game_id, counter, odd FROM games g join choices c on g.game_id = c.game_id WHERE ref_id='${refid}' and choice='${choice}'`,
+            (error, results, fields) => {
                 if (error) throw error;
                 if(results.length > 0){
-                    if(results[0].betcount <= 10){
-                        connection.query(`INSERT INTO betslips(betid, gameid, choice, amount)
-                        VALUES('${uuidv4()}','${gameid}','${choice}',${Number(amount)})`, (error, results, fields) => {
+                    const {game_id, odd, fixture, counter} = results[0]
+                    const potwin = odd * Number(amount)
+                    if(counter <= 10){
+                        connection.query(`INSERT INTO betslips(slip_id, game_id, choice, bet_amount, pot_win)
+                        VALUES('${uuidv4()}','${game_id}','${choice}',${Number(amount)},${potwin})`, (error, results, fields) => {
                             if(error) throw error
                             else{
-                                connection.query(`UPDATE booked SET playcount = playcount + 1 WHERE gameid='${gameid}'`, (error, results, fields) => {
+                                connection.query(`UPDATE games SET counter = counter + 1 WHERE ref_id='${refid}'`, (error, results, fields) => {
                                     if (error) throw error;
                                     res.status(201).json({
                                         status: true,
                                         message: "Bet successfully placed and accepted",
-                                        data: req.body
+                                        data: [{"Fixture": fixture}, {"Options": choice}, {"Bet Amount": Number(amount)}, {"Possible Win": potwin}]
                                     })
                                 })
                             }
@@ -53,7 +83,7 @@ const {gameid, choice, amount} = req.body
                         throw 'Selected game is closed/expired';
                     }
                 }else{
-                    throw 'Selected game does not exist';
+                    throw 'Selected game or option does not exist';
                 }
             })
         })

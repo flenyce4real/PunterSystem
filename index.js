@@ -21,11 +21,6 @@ const connection = mysql.createConnection({
     database: process.env.DATABASE_NAME
 })
 
-function UserException(message) {
-    this.message = message;
-    this.name = 'UserException';
-  }
-
 app.post('/addgame', (req, res) => {
     const schema = Joi.object({
         fixture: Joi.string().min(5).required(),

@@ -5,8 +5,10 @@ const betslipControllers = require('../controllers/punter.controllers')
 
 router.use(bodyParser.json())
 
-router.post('/addgame', betslipControllers.addGame)
+const { addGame, newBet } = betslipControllers
 
-router.post('/newbet', betslipControllers.newBet)
+router.post('/addgame', addGame)
+
+router.post('/newbet', newBet)
 
 module.exports = router;

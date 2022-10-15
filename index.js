@@ -4,6 +4,7 @@ const app = express()
 const port = process.env.SERVER_PORT
 const punterRoutes = require('./routes/punter.routes')
 
+app.use(bodyParser.json())
 app.use(punterRoutes)
 
 app.listen(port, () => {

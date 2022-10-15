@@ -1,15 +1,7 @@
 require('dotenv').config()
-const mysql = require('mysql2')
 const { v4: uuidv4 } = require('uuid')
 const Joi = require('joi')
-
-const connection = mysql.createConnection({
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASSWORD,
-    database: process.env.DATABASE_NAME
-})
+const { connection } = require('../models/connection')
 
 const addGame = (req, res) => {
     const schema = Joi.object({

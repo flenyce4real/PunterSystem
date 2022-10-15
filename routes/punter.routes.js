@@ -1,11 +1,9 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const router = express.Router()
-const betslipControllers = require('../controllers/punter.controllers')
+const { addGame, newBet } = require('../controllers/punter.controllers')
 
 router.use(bodyParser.json())
-
-const { addGame, newBet } = betslipControllers
 
 router.post('/addgame', addGame)
 
